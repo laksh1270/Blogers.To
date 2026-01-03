@@ -82,6 +82,9 @@ export default function Header() {
             <Link href="/pricing" className="nav-link">
               Pricing
             </Link>
+             <Link href="/blog/create" className="nav-link">
+              Create Post
+            </Link>
           </nav>
 
           {/* Right Side */}
