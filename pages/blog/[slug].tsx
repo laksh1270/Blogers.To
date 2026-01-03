@@ -17,7 +17,7 @@ interface BlogDetailProps {
 
 export default function BlogDetail({ blog }: BlogDetailProps) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -29,12 +29,13 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
     commentsEnabled: blog.commentsEnabled ?? true,
   });
 
-  // ✅ PERMISSION CHECK (THIS IS THE KEY FIX)
+  /* ================= PERMISSION CHECK (FIXED) ================= */
   const canEdit =
-    session?.user?.email &&
-    blog.author &&
-    session.user.email === blog.author;
+    !!session?.user?.email &&
+    !!blog.authorEmail &&
+    session.user.email === blog.authorEmail;
 
+  /* ================= DELETE ================= */
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
 
@@ -48,6 +49,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
     }
   };
 
+  /* ================= EDIT ================= */
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsDeleting(true);
@@ -81,7 +83,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             </h2>
 
             <input
-              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
               value={editForm.title}
               onChange={(e) =>
                 setEditForm({ ...editForm, title: e.target.value })
@@ -90,7 +92,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             />
 
             <textarea
-              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
               rows={3}
               value={editForm.excerpt}
               onChange={(e) =>
@@ -99,7 +101,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             />
 
             <input
-              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
               value={editForm.author}
               onChange={(e) =>
                 setEditForm({ ...editForm, author: e.target.value })
@@ -130,7 +132,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded"
+                className="px-6 py-2 bg-gray-400 rounded"
               >
                 Cancel
               </button>
@@ -147,19 +149,14 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <Link
-          href="/"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        >
+        <Link href="/" className="text-blue-500 hover:underline">
           ← Back to Blogs
         </Link>
 
         <div className="flex justify-between items-start mt-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            {blog.title}
-          </h1>
+          <h1 className="text-4xl font-bold text-white">{blog.title}</h1>
 
-          {/* ✅ EDIT / DELETE BUTTONS (NOW VISIBLE) */}
+          {/* ✅ EDIT / DELETE NOW WORK */}
           {canEdit && (
             <div className="flex gap-2">
               <button
@@ -171,7 +168,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50"
+                className="px-4 py-2 bg-red-600 text-white rounded"
               >
                 {isDeleting ? 'Deleting…' : 'Delete'}
               </button>
@@ -181,16 +178,14 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
 
         <article className="mt-10 bg-white dark:bg-gray-800 p-8 rounded-lg">
           {blog.mainImage?.asset?.url && (
-            <div className="mb-8 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-              <img
-                src={blog.mainImage.asset.url}
-                alt={blog.title}
-                className="w-full h-auto object-cover"
-              />
-            </div>
+            <img
+              src={blog.mainImage.asset.url}
+              alt={blog.title}
+              className="rounded mb-8"
+            />
           )}
 
-          <div className="prose prose-lg max-w-none dark:prose-invert">
+          <div className="prose dark:prose-invert max-w-none">
             <PortableText value={blog.content} />
           </div>
 
