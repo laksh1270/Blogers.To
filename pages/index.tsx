@@ -61,17 +61,15 @@ export default function Home({ blogs }: HomeProps) {
 
       <main className="max-w-7xl mx-auto px-4 py-16">
 
-        {/* ✅ CREATE POST BUTTON */}
-        {status === 'authenticated' && (
-          <div className="flex justify-center py-6 bg-white dark:bg-gray-900">
-            <Link
-              href="/blog/create"
-              className="px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
-            >
-              + Create Post
-            </Link>
-          </div>
-        )}
+        {/* ✅ CREATE POST BUTTON (Always Visible) */}
+        <div className="flex justify-center py-6 bg-white dark:bg-gray-900">
+          <Link
+            href="/blog/create"
+            className="px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+          >
+            + Create Post
+          </Link>
+        </div>
 
         {/* Category Filters */}
         <div className="mb-8 flex justify-center">
