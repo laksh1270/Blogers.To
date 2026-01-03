@@ -17,10 +17,19 @@ export default function Home({ blogs }: HomeProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('latest')
 
+  const categories = [
+    { label: 'All', value: 'all' },
+    { label: 'Tech', value: 'tech' },
+    { label: 'Health', value: 'health' },
+    { label: 'Food', value: 'food' },
+    { label: 'Education', value: 'education' },
+    { label: 'Places', value: 'places' },
+  ]
+
   const filteredBlogs =
     selectedCategory === 'all'
       ? blogs
-      : blogs.filter((b) => b.category === selectedCategory)
+      : blogs.filter((blog) => blog.category === selectedCategory)
 
   const sortedBlogs = [...filteredBlogs].sort((a, b) => {
     if (sortBy === 'latest') {
@@ -39,7 +48,7 @@ export default function Home({ blogs }: HomeProps) {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
 
-      {/* Banner */}
+      {/* ================= BANNER ================= */}
       <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
         <img
           src="/banner.png"
@@ -48,7 +57,7 @@ export default function Home({ blogs }: HomeProps) {
         />
       </div>
 
-      {/* 🔥 CREATE POST BUTTON (NO AUTH, ALWAYS VISIBLE) */}
+      {/* ================= CREATE POST BUTTON (ALWAYS VISIBLE) ================= */}
       <div className="flex justify-center py-10 bg-white dark:bg-gray-900">
         <a
           href="https://blogers-to.vercel.app/blog/create"
@@ -58,21 +67,36 @@ export default function Home({ blogs }: HomeProps) {
         </a>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-16">
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Category Filters */}
         <div className="mb-8 flex justify-center">
           <CategoryFilters
-            categories={[
-              { label: 'All', value: 'all' },
-              { label: 'Tech', value: 'tech' },
-              { label: 'Health', value: 'health' },
-              { label: 'Food', value: 'food' },
-              { label: 'Education', value: 'education' },
-              { label: 'Places', value: 'places' },
-            ]}
+            categories={categories}
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
           />
+        </div>
+
+        {/* Sort Buttons */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Sort by:
+          </span>
+
+          {['latest', 'popular', 'oldest'].map((sort) => (
+            <button
+              key={sort}
+              onClick={() => setSortBy(sort)}
+              className={`px-4 py-2 text-sm font-medium rounded-md capitalize transition ${
+                sortBy === sort
+                  ? 'bg-gray-900 dark:bg-gray-800 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              {sort}
+            </button>
+          ))}
         </div>
 
         {/* Blog Grid */}
@@ -90,9 +114,11 @@ export default function Home({ blogs }: HomeProps) {
                   className="h-56 w-full object-cover rounded mb-4"
                 />
               )}
+
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {blog.title}
               </h2>
+
               <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
                 {blog.excerpt || 'No description available'}
               </p>
@@ -109,6 +135,6 @@ export const getStaticProps: GetStaticProps = async () => {
 
   return {
     props: { blogs },
-    revalidate: 1, // 🔥 IMPORTANT: force revalidation
+    revalidate: 60,
   }
 }
