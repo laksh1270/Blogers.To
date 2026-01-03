@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import Comments from '../../components/Comments';
 import BlogSidebar from '../../components/BlogSidebar';
+import { useSession } from 'next-auth/react';
 
 interface BlogDetailProps {
   blog: BlogPost;
@@ -16,6 +17,8 @@ interface BlogDetailProps {
 
 export default function BlogDetail({ blog }: BlogDetailProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -26,12 +29,11 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
     commentsEnabled: blog.commentsEnabled ?? true,
   });
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  // ✅ PERMISSION CHECK (THIS IS THE KEY FIX)
+  const canEdit =
+    session?.user?.email &&
+    blog.author &&
+    session.user.email === blog.author;
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
@@ -64,12 +66,16 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
     }
   };
 
+  /* ================= EDIT MODE ================= */
   if (isEditing) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-12">
-          <form className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+          <form
+            onSubmit={handleEdit}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
+          >
             <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
               Edit Blog Post
             </h2>
@@ -77,7 +83,9 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             <input
               className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={editForm.title}
-              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, title: e.target.value })
+              }
               required
             />
 
@@ -85,13 +93,17 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
               className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={3}
               value={editForm.excerpt}
-              onChange={(e) => setEditForm({ ...editForm, excerpt: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, excerpt: e.target.value })
+              }
             />
 
             <input
               className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={editForm.author}
-              onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, author: e.target.value })
+              }
             />
 
             <label className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-300">
@@ -99,21 +111,37 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
                 type="checkbox"
                 checked={editForm.commentsEnabled}
                 onChange={(e) =>
-                  setEditForm({ ...editForm, commentsEnabled: e.target.checked })
+                  setEditForm({
+                    ...editForm,
+                    commentsEnabled: e.target.checked,
+                  })
                 }
               />
               Enable Comments
             </label>
 
-            <button className="px-6 py-2 bg-blue-600 text-white rounded">
-              Save Changes
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-600 text-white rounded"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       </div>
     );
   }
 
+  /* ================= VIEW MODE ================= */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -126,12 +154,32 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
           ← Back to Blogs
         </Link>
 
-        <h1 className="text-4xl font-bold mt-6 text-gray-900 dark:text-white">
-          {blog.title}
-        </h1>
+        <div className="flex justify-between items-start mt-6">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            {blog.title}
+          </h1>
+
+          {/* ✅ EDIT / DELETE BUTTONS (NOW VISIBLE) */}
+          {canEdit && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          )}
+        </div>
 
         <article className="mt-10 bg-white dark:bg-gray-800 p-8 rounded-lg">
-          {/* Image */}
           {blog.mainImage?.asset?.url && (
             <div className="mb-8 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
               <img
@@ -142,25 +190,10 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             </div>
           )}
 
-          {/* Content */}
-          <div
-            className="
-              prose prose-lg max-w-none
-              prose-headings:text-gray-900
-              prose-p:text-gray-800
-              prose-strong:text-gray-900
-              prose-li:text-gray-800
-              dark:prose-invert
-              dark:prose-headings:text-white
-              dark:prose-p:text-gray-200
-              dark:prose-strong:text-white
-              dark:prose-li:text-gray-200
-            "
-          >
+          <div className="prose prose-lg max-w-none dark:prose-invert">
             <PortableText value={blog.content} />
           </div>
 
-          {/* Comments */}
           <div className="mt-12">
             <Comments
               blogId={blog._id}
@@ -176,6 +209,8 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
     </div>
   );
 }
+
+/* ================= SSG ================= */
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const slugs = await client.fetch(allBlogSlugsQuery);
