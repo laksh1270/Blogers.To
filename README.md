@@ -223,13 +223,3 @@ nextblog/
 
 Created for learning and internship project purposes.
 
----
-
-If you want next:
-
-* ✅ **README badges**
-* ✅ **Screenshots section**
-* ✅ **Vercel + Sanity production checklist**
-* ✅ **Auth protection for API routes**
-
-Just say 👍
