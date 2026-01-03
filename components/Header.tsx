@@ -5,9 +5,7 @@ import TopBar from './TopBar';
 import ViewProfile from './ViewProfile';
 
 function AuthButton() {
-  const { data: session, status } = useSession();
-
-  if (status === 'loading') return null;
+  const { data: session } = useSession();
 
   if (session) {
     return (
@@ -22,7 +20,7 @@ function AuthButton() {
 
   return (
     <button
-      onClick={() => signIn('github')}
+      onClick={() => signIn()}
       className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
     >
       Sign In
@@ -31,43 +29,49 @@ function AuthButton() {
 }
 
 export default function Header() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <TopBar />
 
-      <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-          BLOGERS.TO
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              BLOGERS.TO
+            </span>
+          </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-6">
-          <Link href="/features">Features</Link>
-          <Link href="/faq">FAQ</Link>
-          <Link href="/brand-blogs">Brand Blogs</Link>
-          <Link href="/affiliates">Affiliates</Link>
-          <Link href="/pricing">Pricing</Link>
-        </nav>
+          {/* Navigation */}
+          <nav className="flex items-center space-x-8 flex-1 ml-8">
+            <Link href="/features" className="nav-link">Features</Link>
+            <Link href="/faq" className="nav-link">FAQ</Link>
+            <Link href="/brand-blogs" className="nav-link">Brand Blogs</Link>
+            <Link href="/affiliates" className="nav-link">Affiliates</Link>
+            <Link href="/pricing" className="nav-link">Pricing</Link>
+          </nav>
 
-        {/* Right */}
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
+          {/* Right Side */}
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
 
-          {/* ✅ CREATE POST BUTTON (NOW GUARANTEED TO SHOW) */}
-          {status === 'authenticated' && (
+            {/* ✅ CREATE POST — ALWAYS VISIBLE */}
             <Link
               href="/blog/create"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             >
               Create Post
             </Link>
-          )}
 
-          {status === 'authenticated' && <ViewProfile />}
-          <AuthButton />
+            {/* Profile (only if logged in) */}
+            {session && <ViewProfile />}
+
+            {/* Auth */}
+            <AuthButton />
+          </div>
         </div>
       </div>
     </header>
