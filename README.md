@@ -210,7 +210,7 @@ nextblog/
 
 ---
 
-## ⚠️ Assumptions & Notes
+## ⚠️ Notes
 
 * Edit/Delete routes **require authentication** (recommended for production)
 * Full Portable Text editing should be done via Sanity Studio
