@@ -1,186 +1,235 @@
-# Next.js Blog Application with Sanity CMS
 
-A production-ready blog application built with Next.js (Pages Router), TypeScript, and Sanity CMS using GROQ queries.
 
-## Features
+# Next.js Blog Application with Sanity CMS & GitHub Auth
 
-- ✅ **Homepage with Blog Listing** - Displays all blogs fetched from Sanity using GROQ queries
-- ✅ **Dynamic Blog Detail Pages** - Individual blog pages using Next.js dynamic routing
-- ✅ **Edit/Delete Functionality** - Update and delete blog posts directly from the detail page
-- ✅ **Static Site Generation** - Uses `getStaticProps` and `getStaticPaths` for optimal performance
-- ✅ **Fully Responsive** - Mobile, tablet, and desktop friendly UI
-- ✅ **TypeScript** - Fully typed for better developer experience
+A production-ready blog application built using **Next.js (Pages Router)**, **TypeScript**, **Sanity CMS**, and **NextAuth.js** with **GitHub OAuth** authentication.
 
-## Tech Stack
+---
 
-- **Next.js 14** (Pages Router)
-- **TypeScript**
-- **Sanity CMS** with GROQ queries
-- **Tailwind CSS** for styling
-- **Portable Text** for rich content rendering
+## ✨ Features
 
-## Setup Instructions
+* ✅ **Homepage with Blog Listing** (Sanity + GROQ)
+* ✅ **Dynamic Blog Detail Pages**
+* ✅ **Create / Edit / Delete Blogs**
+* ✅ **Static Site Generation (SSG + ISR)**
+* ✅ **GitHub Authentication (NextAuth.js)**
+* ✅ **User Profiles**
+* ✅ **Image Upload Support**
+* ✅ **Fully Responsive UI**
+* ✅ **TypeScript for Type Safety**
 
-### 1. Install Dependencies
+---
+
+## 🛠 Tech Stack
+
+* **Next.js 14** (Pages Router)
+* **TypeScript**
+* **Sanity CMS** (GROQ Queries)
+* **NextAuth.js** (Authentication)
+* **GitHub OAuth**
+* **Tailwind CSS**
+* **Portable Text**
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Environment Variables
+---
 
-Create a `.env.local` file in the root directory with the following variables:
+### 2️⃣ Environment Variables
+
+Create a **`.env.local`** file in the root directory:
 
 ```env
+# ===============================
+# Sanity Configuration
+# ===============================
 NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2023-01-01
-SANITY_API_TOKEN=your_api_token
+SANITY_API_TOKEN=your_sanity_api_token
+
+# ===============================
+# GitHub OAuth (NextAuth)
+# ===============================
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# ===============================
+# NextAuth Configuration
+# ===============================
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
 ```
 
-**Important:** Create the `.env.local` file manually in the root directory with your Sanity credentials. The file is already in `.gitignore` to prevent committing sensitive data.
+⚠️ **Important**
 
-### 3. Sanity CMS Schema Setup
+* Never commit `.env.local`
+* All secrets must stay private
+* `.env.local` is already included in `.gitignore`
 
-The blog schema is defined in `sanity/schemas/blog.ts`. To use this schema in your Sanity Studio:
+---
 
-1. Install Sanity CLI (if not already installed):
-   ```bash
-   npm install -g @sanity/cli
-   ```
+### 3️⃣ GitHub OAuth Setup
 
-2. Initialize Sanity in your project (if not already done):
-   ```bash
-   sanity init
-   ```
+1. Go to: **[https://github.com/settings/developers](https://github.com/settings/developers)**
+2. Create a **New OAuth App**
+3. Set:
 
-3. Add the blog schema to your Sanity Studio's schema folder and import it in your `schemas/index.ts`:
-   ```typescript
-   import blog from './blog';
-   
-   export default [blog];
-   ```
+   * **Homepage URL:** `http://localhost:3000`
+   * **Authorization callback URL:**
 
-### 4. Run Development Server
+     ```
+     http://localhost:3000/api/auth/callback/github
+     ```
+4. Copy **Client ID** and **Client Secret** into `.env.local`
+
+---
+
+### 4️⃣ Sanity CMS Setup
+
+The schema files are located in:
+
+```
+sanity/schemas/
+```
+
+To initialize Sanity Studio:
+
+```bash
+npm install -g @sanity/cli
+sanity init
+```
+
+Ensure schemas are exported properly:
+
+```ts
+import blog from "./blog";
+import author from "./author";
+import comment from "./comment";
+
+export default [blog, author, comment];
+```
+
+---
+
+### 5️⃣ Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open 👉 **[http://localhost:3000](http://localhost:3000)**
 
-### 5. Build for Production
+---
+
+### 6️⃣ Build for Production
 
 ```bash
 npm run build
 npm start
 ```
 
-## GROQ Queries Explanation
+---
 
-All GROQ queries are defined in `lib/queries.ts`:
+## 🔍 GROQ Queries
 
-### `allBlogsQuery`
-Fetches all blog posts ordered by publication date (newest first):
+Located in `lib/queries.ts`
+
+### Fetch All Blogs
+
 ```groq
-*[_type == "blog"] | order(publishedAt desc) {
-  _id,
-  title,
-  slug,
-  excerpt,
-  publishedAt,
-  author
-}
+*[_type == "blog"] | order(publishedAt desc)
 ```
 
-### `blogBySlugQuery`
-Fetches a single blog post by its slug:
+### Fetch Blog by Slug
+
 ```groq
-*[_type == "blog" && slug.current == $slug][0] {
-  _id,
-  title,
-  slug,
-  content,
-  publishedAt,
-  author,
-  excerpt
-}
+*[_type == "blog" && slug.current == $slug][0]
 ```
 
-### `allBlogSlugsQuery`
-Fetches all blog slugs for static path generation:
+### Fetch All Slugs
+
 ```groq
-*[_type == "blog"] {
-  slug {
-    current
-  }
-}
+*[_type == "blog"].slug.current
 ```
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```
 nextblog/
 ├── pages/
 │   ├── api/
-│   │   └── blog/
-│   │       └── [id].ts          # API routes for edit/delete
-│   ├── blog/
-│   │   └── [slug].tsx           # Dynamic blog detail page
-│   ├── _app.tsx                 # App wrapper
-│   └── index.tsx                # Homepage with blog listing
+│   │   ├── auth/                # NextAuth routes
+│   │   ├── blog/                # CRUD APIs
+│   │   └── upload-image.ts
+│   ├── blog/[slug].tsx
+│   ├── profile/[id].tsx
+│   ├── _app.tsx
+│   └── index.tsx
+├── components/
 ├── lib/
-│   ├── sanity.ts                # Sanity client configuration
-│   └── queries.ts               # GROQ queries
-├── types/
-│   └── blog.ts                  # TypeScript interfaces
+│   ├── sanity.ts
+│   └── queries.ts
 ├── sanity/
 │   └── schemas/
-│       └── blog.ts              # Sanity schema definition
 ├── styles/
-│   └── globals.css              # Global styles with Tailwind
-└── .env.local                   # Environment variables (not committed)
+├── types/
+└── .env.local (ignored)
 ```
 
-## Static Site Generation (SSG)
+---
 
-The application uses Next.js Static Site Generation for optimal performance:
+## 🔐 Authentication (GitHub + NextAuth)
 
-- **Homepage (`index.tsx`)**: Uses `getStaticProps` to fetch all blogs at build time with ISR (revalidates every 60 seconds)
-- **Blog Detail Pages (`[slug].tsx`)**: Uses `getStaticPaths` to pre-generate all blog pages and `getStaticProps` to fetch individual blog data
+* Login via GitHub
+* Session handled by NextAuth
+* User profiles auto-created in Sanity
+* Auth routes located at:
 
-## Edit/Delete Functionality
+  ```
+  /api/auth/[...nextauth]
+  ```
 
-- **Edit**: Click the "Edit" button on any blog detail page to update the title, excerpt, and author
-- **Delete**: Click the "Delete" button to remove a blog post (with confirmation)
-- Both operations use API routes (`/api/blog/[id]`) that interact with Sanity CMS using the write client
+---
 
-**Note**: For production, consider adding authentication/authorization to protect these endpoints. A commented example is provided in the API route.
+## 🚀 Deployment (Vercel)
 
-## Deployment on Vercel
+1. Push code to GitHub
+2. Import project into **Vercel**
+3. Add environment variables in Vercel dashboard
+4. Deploy 🎉
 
-1. Push your code to a GitHub repository
-2. Import the project in Vercel
-3. Add environment variables in Vercel dashboard:
-   - `NEXT_PUBLIC_SANITY_PROJECT_ID`
-   - `NEXT_PUBLIC_SANITY_DATASET`
-   - `NEXT_PUBLIC_SANITY_API_VERSION`
-   - `SANITY_API_TOKEN`
-4. Deploy!
+---
 
-## Assumptions & Trade-offs
+## ⚠️ Assumptions & Notes
 
-1. **Content Editing**: Full content editing (Portable Text blocks) is not implemented in the edit form - only title, excerpt, and author can be edited. Full content editing should be done in Sanity Studio.
+* Edit/Delete routes **require authentication** (recommended for production)
+* Full Portable Text editing should be done via Sanity Studio
+* ISR revalidation set to **60 seconds**
+* Image uploads handled via API route
 
-2. **Authentication**: Edit/Delete endpoints are currently unprotected. For production, implement proper authentication (e.g., token-based auth as shown in commented code).
+---
 
-3. **Image Handling**: The schema supports images in Portable Text, but image URL building is set up in `lib/sanity.ts` for future use.
+## 📄 License
 
-4. **Error Handling**: Basic error handling is implemented. For production, consider more robust error handling and user feedback.
+Created for learning and internship project purposes.
 
-5. **Revalidation**: ISR is set to 60 seconds. Adjust based on your content update frequency.
+---
 
-## License
+If you want next:
 
-This project is created for internship assignment purposes.
+* ✅ **README badges**
+* ✅ **Screenshots section**
+* ✅ **Vercel + Sanity production checklist**
+* ✅ **Auth protection for API routes**
 
+Just say 👍
