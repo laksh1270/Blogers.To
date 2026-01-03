@@ -19,7 +19,6 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // ✅ FIX: include commentsEnabled in editForm
   const [editForm, setEditForm] = useState({
     title: blog.title,
     excerpt: blog.excerpt || '',
@@ -67,32 +66,35 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
 
   if (isEditing) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Header />
         <div className="max-w-4xl mx-auto px-4 py-12">
-          <form onSubmit={handleEdit} className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold mb-6">Edit Blog Post</h2>
+          <form className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+              Edit Blog Post
+            </h2>
 
             <input
-              className="w-full mb-4 p-2 border rounded"
+              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={editForm.title}
               onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
               required
             />
 
             <textarea
-              className="w-full mb-4 p-2 border rounded"
+              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={3}
               value={editForm.excerpt}
               onChange={(e) => setEditForm({ ...editForm, excerpt: e.target.value })}
             />
 
             <input
-              className="w-full mb-4 p-2 border rounded"
+              className="w-full mb-4 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={editForm.author}
               onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
             />
 
-            <label className="flex items-center gap-2 mb-6">
+            <label className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-300">
               <input
                 type="checkbox"
                 checked={editForm.commentsEnabled}
@@ -104,7 +106,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
             </label>
 
             <button className="px-6 py-2 bg-blue-600 text-white rounded">
-              Save
+              Save Changes
             </button>
           </form>
         </div>
@@ -113,25 +115,63 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <Link href="/">← Back</Link>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Blogs
+        </Link>
 
-        <h1 className="text-4xl font-bold mt-6">{blog.title}</h1>
+        <h1 className="text-4xl font-bold mt-6 text-gray-900 dark:text-white">
+          {blog.title}
+        </h1>
 
-        <article className="mt-10 bg-white p-8 rounded">
-          <PortableText value={blog.content} />
+        <article className="mt-10 bg-white dark:bg-gray-800 p-8 rounded-lg">
+          {/* Image */}
+          {blog.mainImage?.asset?.url && (
+            <div className="mb-8 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+              <img
+                src={blog.mainImage.asset.url}
+                alt={blog.title}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          )}
 
-          {/* ✅ Safe usage */}
-          <Comments
-            blogId={blog._id}
-            commentsEnabled={blog.commentsEnabled !== false}
-          />
+          {/* Content */}
+          <div
+            className="
+              prose prose-lg max-w-none
+              prose-headings:text-gray-900
+              prose-p:text-gray-800
+              prose-strong:text-gray-900
+              prose-li:text-gray-800
+              dark:prose-invert
+              dark:prose-headings:text-white
+              dark:prose-p:text-gray-200
+              dark:prose-strong:text-white
+              dark:prose-li:text-gray-200
+            "
+          >
+            <PortableText value={blog.content} />
+          </div>
+
+          {/* Comments */}
+          <div className="mt-12">
+            <Comments
+              blogId={blog._id}
+              commentsEnabled={blog.commentsEnabled !== false}
+            />
+          </div>
         </article>
 
-        <BlogSidebar blog={blog} />
+        <div className="mt-10">
+          <BlogSidebar blog={blog} />
+        </div>
       </div>
     </div>
   );
@@ -141,7 +181,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const slugs = await client.fetch(allBlogSlugsQuery);
 
   return {
-    paths: slugs.map((s: any) => ({ params: { slug: s.slug.current } })),
+    paths: slugs.map((s: any) => ({
+      params: { slug: s.slug.current },
+    })),
     fallback: 'blocking',
   };
 };
