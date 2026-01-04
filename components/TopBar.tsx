@@ -3,9 +3,6 @@ export default function TopBar() {
     <div className="bg-gray-900 dark:bg-gray-950 text-white text-xs py-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <div className="flex justify-center py-10 bg-white dark:bg-gray-900">
-            Welcome to Blogers.To
-          </div>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-blue-400 transition-colors" aria-label="Facebook">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
