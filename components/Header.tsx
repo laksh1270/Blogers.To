@@ -82,18 +82,15 @@ export default function Header() {
             <Link href="/pricing" className="nav-link">
               Pricing
             </Link>
+            <Link href="/blog/create" className="nav-link">
+              Create Post
+            </Link>
           </nav>
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
 
-            <Link
-              href="/blog/create"
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-            >
-              Create Post
-            </Link>
 
             {session && <ViewProfile />}
 
