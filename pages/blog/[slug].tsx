@@ -1,39 +1,50 @@
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { useRouter } from 'next/router';
 import { PortableText } from '@portabletext/react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+
 import { client } from '../../lib/sanity';
 import { blogBySlugQuery, allBlogSlugsQuery } from '../../lib/queries';
 import { BlogPost } from '../../types/blog';
-import { useState } from 'react';
-import Link from 'next/link';
+
 import Header from '../../components/Header';
 import Comments from '../../components/Comments';
 import BlogSidebar from '../../components/BlogSidebar';
-import { useSession } from 'next-auth/react';
 
 interface BlogDetailProps {
   blog: BlogPost;
 }
 
+/* ✅ Proper EditForm type */
+type EditForm = {
+  title: string;
+  excerpt: string;
+  author: string;
+  commentsEnabled: boolean;
+};
+
 export default function BlogDetail({ blog }: BlogDetailProps) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<EditForm>({
     title: blog.title,
     excerpt: blog.excerpt || '',
     author: blog.author || '',
-    commentsEnabled: blog.commentsEnabled ?? true,
+    commentsEnabled: blog.commentsEnabled !== false,
   });
 
-  /* ================= PERMISSION CHECK (FIXED) ================= */
-  const canEdit =
-    !!session?.user?.email &&
-    !!blog.authorEmail &&
-    session.user.email === blog.authorEmail;
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 
   /* ================= DELETE ================= */
   const handleDelete = async () => {
@@ -71,44 +82,38 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
   /* ================= EDIT MODE ================= */
   if (isEditing) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header />
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-12">
-          <form
-            onSubmit={handleEdit}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-              Edit Blog Post
-            </h2>
+          <form onSubmit={handleEdit} className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold mb-6">Edit Blog Post</h2>
 
             <input
-              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
+              className="w-full mb-4 p-2 border rounded"
               value={editForm.title}
-              onChange={(e) =>
-                setEditForm({ ...editForm, title: e.target.value })
-              }
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              placeholder="Title"
               required
             />
 
             <textarea
-              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
-              rows={3}
+              className="w-full mb-4 p-2 border rounded"
               value={editForm.excerpt}
               onChange={(e) =>
                 setEditForm({ ...editForm, excerpt: e.target.value })
               }
+              placeholder="Excerpt"
             />
 
             <input
-              className="w-full mb-4 p-2 border rounded dark:bg-gray-700"
+              className="w-full mb-4 p-2 border rounded"
               value={editForm.author}
               onChange={(e) =>
                 setEditForm({ ...editForm, author: e.target.value })
               }
+              placeholder="Author"
             />
 
-            <label className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-300">
+            <label className="flex items-center gap-2 mb-6">
               <input
                 type="checkbox"
                 checked={editForm.commentsEnabled}
@@ -119,7 +124,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
                   })
                 }
               />
-              Enable Comments
+              Enable comments
             </label>
 
             <div className="flex gap-4">
@@ -127,12 +132,12 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
                 type="submit"
                 className="px-6 py-2 bg-blue-600 text-white rounded"
               >
-                Save Changes
+                Save
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 bg-gray-400 rounded"
+                className="px-6 py-2 bg-gray-300 rounded"
               >
                 Cancel
               </button>
@@ -144,50 +149,76 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
   }
 
   /* ================= VIEW MODE ================= */
+
+  const getCategoryColor = (category?: string) => {
+    const colors: Record<string, string> = {
+      tech: 'bg-blue-100 text-blue-800',
+      health: 'bg-green-100 text-green-800',
+      food: 'bg-orange-100 text-orange-800',
+      education: 'bg-purple-100 text-purple-800',
+      places: 'bg-pink-100 text-pink-800',
+    };
+    return colors[category || ''] || 'bg-gray-100 text-gray-800';
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <Link href="/" className="text-blue-500 hover:underline">
-          ← Back to Blogs
+        <Link href="/" className="text-blue-600 hover:underline">
+          ← Back to Blog List
         </Link>
 
-        <div className="flex justify-between items-start mt-6">
-          <h1 className="text-4xl font-bold text-white">{blog.title}</h1>
+        <div className="flex justify-between mt-6">
+          <div>
+            {blog.category && (
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(
+                  blog.category
+                )}`}
+              >
+                {blog.category}
+              </span>
+            )}
 
-          {/* ✅ EDIT / DELETE NOW WORK */}
-          {canEdit && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded"
-              >
-                {isDeleting ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          )}
+            <h1 className="text-4xl font-bold mt-4">{blog.title}</h1>
+
+            <p className="text-sm text-gray-600 mt-2">
+              {blog.publishedAt && formatDate(blog.publishedAt)}
+              {blog.author && ` • ${blog.author}`}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-4 py-2 bg-red-600 text-white rounded"
+            >
+              Delete
+            </button>
+          </div>
         </div>
+      </div>
 
-        <article className="mt-10 bg-white dark:bg-gray-800 p-8 rounded-lg">
+      <main className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <article className="lg:col-span-2 bg-white p-8 rounded-lg">
           {blog.mainImage?.asset?.url && (
             <img
               src={blog.mainImage.asset.url}
               alt={blog.title}
-              className="rounded mb-8"
+              className="w-full h-96 object-cover rounded mb-8"
             />
           )}
 
-          <div className="prose dark:prose-invert max-w-none">
-            <PortableText value={blog.content} />
-          </div>
+          <PortableText value={blog.content} />
 
           <div className="mt-12">
             <Comments
@@ -197,10 +228,10 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
           </div>
         </article>
 
-        <div className="mt-10">
+        <div className="lg:col-span-1">
           <BlogSidebar blog={blog} />
         </div>
-      </div>
+      </main>
     </div>
   );
 }
@@ -210,12 +241,11 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
 export const getStaticPaths: GetStaticPaths = async () => {
   const slugs = await client.fetch(allBlogSlugsQuery);
 
-  return {
-    paths: slugs.map((s: any) => ({
-      params: { slug: s.slug.current },
-    })),
-    fallback: 'blocking',
-  };
+  const paths = slugs.map((s: any) => ({
+    params: { slug: s.slug.current },
+  }));
+
+  return { paths, fallback: 'blocking' };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {

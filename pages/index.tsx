@@ -15,13 +15,15 @@ interface HomeProps {
 
 export default function Home({ blogs }: HomeProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [sortBy, setSortBy] = useState('latest')
+  const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'oldest'>('latest')
 
+  // ✅ Filter blogs
   const filteredBlogs =
     selectedCategory === 'all'
       ? blogs
       : blogs.filter((b) => b.category === selectedCategory)
 
+  // ✅ Sort blogs
   const sortedBlogs = [...filteredBlogs].sort((a, b) => {
     if (sortBy === 'latest') {
       return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
@@ -39,7 +41,7 @@ export default function Home({ blogs }: HomeProps) {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
 
-      {/* Banner */}
+      {/* ================= BANNER ================= */}
       <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
         <img
           src="/banner.png"
@@ -48,17 +50,19 @@ export default function Home({ blogs }: HomeProps) {
         />
       </div>
 
-      {/* ✅ CREATE POST BUTTON (ALWAYS VISIBLE) */}
-      <div className="flex justify-center py-10 bg-white dark:bg-gray-900">
+      {/* ================= CREATE POST BUTTON ================= */}
+      <div className="w-full bg-[#0b1220] py-10 flex justify-center">
         <Link
-          href="https://blogers-to.vercel.app/blog/create"
-          className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 transition"
+          href="/blog/create"
+          className="px-8 py-3 rounded-lg bg-blue-600 text-white text-lg font-semibold hover:bg-blue-700 transition"
         >
           + Create Post
         </Link>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-16">
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
         {/* Category Filters */}
         <div className="mb-8 flex justify-center">
           <CategoryFilters
@@ -80,7 +84,8 @@ export default function Home({ blogs }: HomeProps) {
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Sort by:
           </span>
-          {['latest', 'popular', 'oldest'].map((sort) => (
+
+          {(['latest', 'popular', 'oldest'] as const).map((sort) => (
             <button
               key={sort}
               onClick={() => setSortBy(sort)}
@@ -101,9 +106,9 @@ export default function Home({ blogs }: HomeProps) {
             <Link
               key={blog._id}
               href={`/blog/${blog.slug.current}`}
-              className="group block"
+              className="glow-border"
             >
-              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition">
+              <div className="glow-border-content p-6 shadow-lg">
                 {blog.mainImage?.asset?.url && (
                   <img
                     src={blog.mainImage.asset.url}
@@ -116,8 +121,8 @@ export default function Home({ blogs }: HomeProps) {
                   {blog.title}
                 </h2>
 
-                <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
-                  {blog.excerpt || 'No description available.'}
+                <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
+                  {blog.excerpt || 'No description available'}
                 </p>
               </div>
             </Link>
