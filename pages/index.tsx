@@ -48,14 +48,14 @@ export default function Home({ blogs }: HomeProps) {
         />
       </div>
 
-      {/* 🔥 CREATE POST BUTTON (NO AUTH, ALWAYS VISIBLE) */}
+      {/* ✅ CREATE POST BUTTON (ALWAYS VISIBLE) */}
       <div className="flex justify-center py-10 bg-white dark:bg-gray-900">
-        <a
+        <Link
           href="https://blogers-to.vercel.app/blog/create"
-          className="px-8 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
+          className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 transition"
         >
           + Create Post
-        </a>
+        </Link>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 py-16">
@@ -75,27 +75,51 @@ export default function Home({ blogs }: HomeProps) {
           />
         </div>
 
+        {/* Sort */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Sort by:
+          </span>
+          {['latest', 'popular', 'oldest'].map((sort) => (
+            <button
+              key={sort}
+              onClick={() => setSortBy(sort)}
+              className={`px-4 py-2 text-sm font-medium rounded-md capitalize transition ${
+                sortBy === sort
+                  ? 'bg-gray-900 dark:bg-gray-800 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              {sort}
+            </button>
+          ))}
+        </div>
+
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedBlogs.map((blog) => (
             <Link
               key={blog._id}
               href={`/blog/${blog.slug.current}`}
-              className="block p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-xl transition"
+              className="group block"
             >
-              {blog.mainImage?.asset?.url && (
-                <img
-                  src={blog.mainImage.asset.url}
-                  alt={blog.title}
-                  className="h-56 w-full object-cover rounded mb-4"
-                />
-              )}
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {blog.title}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
-                {blog.excerpt || 'No description available'}
-              </p>
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition">
+                {blog.mainImage?.asset?.url && (
+                  <img
+                    src={blog.mainImage.asset.url}
+                    alt={blog.title}
+                    className="h-56 w-full object-cover rounded mb-4"
+                  />
+                )}
+
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  {blog.title}
+                </h2>
+
+                <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+                  {blog.excerpt || 'No description available.'}
+                </p>
+              </div>
             </Link>
           ))}
         </div>
@@ -109,6 +133,6 @@ export const getStaticProps: GetStaticProps = async () => {
 
   return {
     props: { blogs },
-    revalidate: 1, // 🔥 IMPORTANT: force revalidation
+    revalidate: 60,
   }
 }
