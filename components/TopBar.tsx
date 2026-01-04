@@ -4,9 +4,7 @@ export default function TopBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex justify-center py-10 bg-white dark:bg-gray-900">
-            <a href="https://blogers-to.vercel.app/blog/create" className="px-8 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition">
-              Create Post
-            </a>
+            Welcome to Blogers.To
           </div>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-blue-400 transition-colors" aria-label="Facebook">
